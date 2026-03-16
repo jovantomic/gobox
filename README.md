@@ -2,7 +2,9 @@
 
 container runtime from scratch in Go. Why? It sounds fun and wanted to learn go
 
-basically building what docker does under the hood — namespaces, cgroups, overlayfs, networking.
+basically building what docker does under the hood 
+
+namespaces, cgroups, overlayfs, networking.
 
 ## status
 
