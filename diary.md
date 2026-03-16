@@ -16,3 +16,15 @@ $ ps
 ```
 
 problem: spawned bash sees all host processes. need PID namespace so it only sees itself as PID 1. 
+
+fixed that learned processes, why i need childetc. 
+
+UTS + PID + mount namespaces finished. chroot into alpine rootfs. /proc mount inside container so ps only shows container processes.
+
+### first bug (1.5h of hating go and my life)
+
+mounted /proc inside the container but without a proper mount namespace, so it overwrote the host's /proc. suddenly nothing worked — go, ls /proc/self/exe, all broken
+
+fixed by mouting it back to host in terminal
+
+next: cgroups for resource limits, then networking.

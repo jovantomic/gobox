@@ -8,7 +8,7 @@ namespaces, cgroups, overlayfs, networking.
 
 ## status
 
-just started. can spawn a child process, next up is actual isolation.
+can spawn isolated processes with their own hostname, PID namespace, and mount namespace. chroot into alpine rootfs works. 
 
 ```bash
 sudo ./gobox run /bin/sh

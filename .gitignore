@@ -15,6 +15,9 @@ dist/
 # Archives
 *.tar.gz
 
+# Container rootfs
+rootfs/
+
 # IDE/editor files
 .vscode/
 .idea/
