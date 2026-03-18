@@ -2,15 +2,9 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strconv"
 	"syscall"
-	"time"
-
-	"github.com/vishvananda/netlink"
 )
 
 func must(err error) {
@@ -20,14 +14,7 @@ func must(err error) {
 }
 
 func main() {
-	switch os.Args[1] {
-	case "run":
-		run()
-	case "child":
-		child()
-	default:
-		panic("wooooo")
-	}
+	executeCLI()
 }
 
 func run() {
@@ -51,7 +38,7 @@ func run() {
 	cmd.Wait()
 
 	cleanupNet()
-	os.Remove("/sys/fs/cgroup/gobox")
+	os.Remove(cgroupPath)
 }
 
 func child() {
@@ -61,8 +48,8 @@ func child() {
 
 	setupContainerNet()
 
-	must(syscall.Sethostname([]byte("gobox")))
-	must(syscall.Chroot("/home/ubuntu/gobox/root"))
+	must(syscall.Sethostname([]byte(hostname)))
+	must(syscall.Chroot(rootfsPath))
 	must(syscall.Chdir("/"))
 	must(syscall.Mount("proc", "proc", "proc", 0, ""))
 
@@ -71,75 +58,4 @@ func child() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
-}
-
-func cg() {
-	cgroup := "/sys/fs/cgroup/gobox"
-	err := os.Mkdir(cgroup, 0755)
-	if err != nil && !os.IsExist(err) {
-		panic(err)
-	}
-	must(os.WriteFile("/sys/fs/cgroup/cgroup.subtree_control", []byte("+pids +memory"), 0700))
-	must(os.WriteFile(filepath.Join(cgroup, "pids.max"), []byte("20"), 0700))
-	must(os.WriteFile(filepath.Join(cgroup, "memory.max"), []byte("100m"), 0700))
-	must(os.WriteFile(filepath.Join(cgroup, "cgroup.procs"), []byte(strconv.Itoa(os.Getpid())), 0700))
-}
-
-func setupHostNet(pid int) {
-	la := netlink.NewLinkAttrs()
-	la.Name = "host_veth"
-	veth := &netlink.Veth{
-		LinkAttrs: la,
-		PeerName:  "gobox_cont",
-	}
-	must(netlink.LinkAdd(veth))
-
-	hostVeth, err := netlink.LinkByName("host_veth")
-	if err != nil {
-		panic(err)
-	}
-	//mora privatni IP da ne bi bilo konflikta sa stvarnim mrežama :(
-	hostAddr, err := netlink.ParseAddr("10.10.10.1/24")
-	if err != nil {
-		panic(err)
-	}
-	must(netlink.AddrAdd(hostVeth, hostAddr))
-	must(netlink.LinkSetUp(hostVeth))
-
-	contVeth, err := netlink.LinkByName("gobox_cont")
-	if err != nil {
-		panic(err)
-	}
-	must(netlink.LinkSetNsPid(contVeth, pid))
-}
-
-func setupContainerNet() {
-	time.Sleep(2 * time.Second)
-	lo, err := netlink.LinkByName("lo")
-	if err != nil {
-		panic(err)
-	}
-	must(netlink.LinkSetUp(lo))
-
-	contVeth, err := netlink.LinkByName("gobox_cont")
-	if err != nil {
-		panic(err)
-	}
-	contAddr, err := netlink.ParseAddr("10.10.10.2/24")
-	if err != nil {
-		panic(err)
-	}
-	must(netlink.AddrAdd(contVeth, contAddr))
-	must(netlink.LinkSetUp(contVeth))
-
-	must(netlink.RouteAdd(&netlink.Route{
-		Gw: net.ParseIP("10.10.10.1"),
-	}))
-}
-
-func cleanupNet() {
-	link, err := netlink.LinkByName("host_veth")
-	if err == nil {
-		netlink.LinkDel(link)
-	}
 }
