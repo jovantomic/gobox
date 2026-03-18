@@ -17,19 +17,20 @@ var rootCmd = &cobra.Command{
 
 var runCmd = &cobra.Command{
 	Use:   "run [command]",
-	Short: "Run a command in a container",
+	Short: "Run a new container",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		run(args)
+		memory, _ := cmd.Flags().GetString("memory")
+		pids, _ := cmd.Flags().GetString("pids")
+		run(args, memory, pids)
 	},
 }
-
 var childCmd = &cobra.Command{
 	Use:    "child [command]",
 	Hidden: true,
 	Args:   cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		child()
+		child(args)
 	},
 }
 
@@ -46,7 +47,7 @@ var psCmd = &cobra.Command{
 			if file.IsDir() {
 				continue
 			}
-			state := getContainerById(file.Name()[:len(file.Name())-5]) // remove .json
+			state := getContainerById(file.Name()[:len(file.Name())-5])
 			if state != nil {
 				fmt.Printf("%-20s %-20s %-20s %-20s\n", state.Id, state.Status, state.Command, state.Created.Format("2006-01-02 15:04:05"))
 			}
@@ -55,6 +56,8 @@ var psCmd = &cobra.Command{
 }
 
 func init() {
+	runCmd.Flags().StringP("memory", "m", "100m", "Memory limit")
+	runCmd.Flags().StringP("pids", "p", "20", "Max number of processes")
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(childCmd)
 	rootCmd.AddCommand(psCmd)

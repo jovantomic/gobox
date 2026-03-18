@@ -47,3 +47,6 @@ added container state tracking. each container gets a random ID, saves a JSON fi
 `gobox ps` now lists all containers for real. 
 
 idk if i like oop in go still
+
+each container gets its own cgroup path based on its ID. 
+added CLI flags for memory and pids limits, `gobox run -m 200m -p 10 /bin/sh` works now.

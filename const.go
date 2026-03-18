@@ -3,7 +3,6 @@ package main
 const (
 	rootfsPath  = "/home/ubuntu/gobox/root"
 	hostname    = "gobox"
-	cgroupPath  = "/sys/fs/cgroup/gobox"
 	vethHost    = "host_veth"
 	vethCont    = "gobox_cont"
 	hostIP      = "10.10.10.1/24"

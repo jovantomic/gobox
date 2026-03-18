@@ -53,6 +53,7 @@ func getContainerById(id string) *ContainerState {
 func deleteContainerState(id string) {
 	os.Remove("/var/lib/gobox/" + id + ".json")
 }
+
 func saveJSON(state *ContainerState) {
 	dir := "/var/lib/gobox/"
 	os.MkdirAll(dir, 0755)
