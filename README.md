@@ -2,8 +2,6 @@
 
 container runtime from scratch in Go. why? sounded fun and wanted to learn go
 
-basically building what docker does under the hood — namespaces, cgroups, networking.
-
 ## what works
 
 - PID namespace — container only sees its own processes
