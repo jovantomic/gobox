@@ -16,9 +16,11 @@ var rootCmd = &cobra.Command{
 }
 
 var runCmd = &cobra.Command{
-	Use:   "run [command]",
-	Short: "Run a new container",
-	Args:  cobra.MinimumNArgs(1),
+	Use:                "run [command]",
+	Short:              "Run a new container",
+	Args:               cobra.MinimumNArgs(1),
+	DisableFlagParsing: false,
+	TraverseChildren:   true,
 	Run: func(cmd *cobra.Command, args []string) {
 		memory, _ := cmd.Flags().GetString("memory")
 		pids, _ := cmd.Flags().GetString("pids")
@@ -94,10 +96,22 @@ var pullCmd = &cobra.Command{
 	},
 }
 
+var execCmd = &cobra.Command{
+	Use:   "exec [id] [command]",
+	Short: "Execute a command in a running container",
+	Args:  cobra.MinimumNArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		id := args[0]
+		command := args[1:]
+		execContainer(id, command)
+	},
+}
+
 func init() {
 	runCmd.Flags().StringP("memory", "m", "100m", "Memory limit")
 	runCmd.Flags().StringP("pids", "p", "20", "Max number of processes")
-	runCmd.Flags().StringP("image", "i", "alpine:latest", "Image to use for the container")
+	runCmd.Flags().StringP("image", "i", "", "Image to use")
+
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(stopCmd)
 	rootCmd.AddCommand(childCmd)
@@ -105,7 +119,7 @@ func init() {
 	rootCmd.AddCommand(rmCmd)
 	rootCmd.AddCommand(logCmd)
 	rootCmd.AddCommand(pullCmd)
-
+	rootCmd.AddCommand(execCmd)
 }
 
 func executeCLI() {

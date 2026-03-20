@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"time"
@@ -129,4 +130,21 @@ func getAllContainers() []*ContainerState {
 		}
 	}
 	return containers
+}
+
+func execContainer(id string, command []string) {
+	state := getContainerById(id)
+	if state == nil {
+		fmt.Printf("Container with ID %s not found\n", id)
+		return
+	}
+	pid := fmt.Sprint(state.Pid)
+	args := []string{"-t", pid, "-m", "-u", "-p", "-n", "--"}
+	args = append(args, command...)
+
+	cmd := exec.Command("nsenter", args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }

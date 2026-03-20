@@ -88,6 +88,6 @@ func child(args []string) {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	//err := cmd.Run()
+	cmd.Run()
 	//fmt.Println("DEBUG: cmd.Run error:", err)
 }

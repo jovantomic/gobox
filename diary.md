@@ -80,4 +80,4 @@ learned how tar.gz extraction works in go
 
 i think the first version is completed, still have to do things like exec, checkpoint and migrate and Goboxfile.
 
-
+exec command added, now we can run `sudo ./gobox exec <id> command`, in some other bash for a running container
