@@ -18,6 +18,7 @@ type ContainerState struct {
 	Id      string    `json:"id"`
 	Status  string    `json:"status"`
 	Command string    `json:"command"`
+	Image   string    `json:"image,omitempty"`
 	Created time.Time `json:"created"`
 	Pid     int       `json:"pid,omitempty"`
 	IP      string    `json:"ip,omitempty"`

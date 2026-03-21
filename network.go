@@ -41,7 +41,7 @@ func setupHostNet(pid int) {
 }
 
 func setupContainerNet() {
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	lo, err := netlink.LinkByName("lo")
 	if err != nil {
 		panic(err)
