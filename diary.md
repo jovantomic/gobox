@@ -89,3 +89,12 @@ port forwarding. `gobox port <id> 8080:80` — iptables DNAT rule that redirects
 testing with nginx was a whole saga. dns didnt work (no resolv.conf), internet didnt work (ip_forward off + wrong subnet in MASQUERADE), and nginx returned 404 on everything because alpine default config literally says `return 404`. three problems stacked.
 
 added `gobox cp` to copy files from host into container. also added IP to container state struct.
+
+then started checkpoint/restore with CRIU. this took HOURS. every fix revealed a new error:
+1. root mismatch - had to switch from chroot to pivot_root
+2. gobox binary mapped in memory — had to replace `exec.Command` with `syscall.Exec` so the process IS the shell, not gobox wrapping it
+3. session leader outside pid namespace — needed `syscall.Setsid()`
+4. couldnt find /dev/pts/0 — stdin had to go through a pipe instead of direct host terminal
+5. CRIU 3.16.1 segfaulted on restore — had to build latest CRIU from source
+
+finally got it working. `gobox checkpoint <id>` freezes a running container, `gobox restore <id>` brings it back with full state. files, memory, everything preserved.

@@ -27,14 +27,17 @@ func run(args []string, memory string, pids string, image string) {
 	}
 
 	state := newContainerState(args[0])
+	state.Image = image
 	state.Status = "running"
 	saveJSON(state)
 	fmt.Printf("Container %s started\n", state.Id)
 
 	fmt.Println("Running the application...", args, "PID:", os.Getpid())
 	cmd := exec.Command("/proc/self/exe", append([]string{"child", state.Id, memory, pids, imgPath}, args...)...)
+	stdinReader, stdinWriter, err := os.Pipe()
+	must(err)
 
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = stdinReader
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS |
 			syscall.CLONE_NEWPID |
@@ -48,6 +51,11 @@ func run(args []string, memory string, pids string, image string) {
 	cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 	cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
 	must(cmd.Start())
+	stdinReader.Close()
+	go func() {
+		defer stdinWriter.Close()
+		io.Copy(stdinWriter, os.Stdin)
+	}()
 	state.Pid = cmd.Process.Pid
 	saveJSON(state)
 
@@ -74,21 +82,19 @@ func child(args []string) {
 	setupContainerNet()
 
 	must(syscall.Sethostname([]byte(hostname)))
-	//fmt.Println("DEBUG: imgPath =", imgPath)
 	merged := setupOverlay(id, imgPath)
-	//fmt.Println("DEBUG: merged =", merged)
 
-	//fmt.Println("DEBUG: merged contents:", len(entries), "entries")
-
-	must(syscall.Chroot(merged))
+	putOld := filepath.Join(merged, ".pivot_old")
+	os.MkdirAll(putOld, 0755)
+	must(syscall.PivotRoot(merged, putOld))
 	must(syscall.Chdir("/"))
+	must(syscall.Unmount("/.pivot_old", syscall.MNT_DETACH))
+	os.Remove("/.pivot_old")
 	os.WriteFile("/etc/resolv.conf", []byte("nameserver 8.8.8.8\n"), 0644)
 	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+	os.MkdirAll("/dev/pts", 0755)
+	must(syscall.Mount("devpts", "/dev/pts", "devpts", 0, ""))
 
-	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
-	//fmt.Println("DEBUG: cmd.Run error:", err)
+	syscall.Setsid()
+	syscall.Exec(args[0], args, os.Environ())
 }

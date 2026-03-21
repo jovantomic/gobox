@@ -4,12 +4,12 @@ container runtime from scratch in Go. why? sounded fun and as a extra project in
 
 ## what works
 
-- **namespaces** — PID, UTS, Mount, Network. container is fully isolated, sees only its own processes, has its own hostname, filesystem, network stack
-- **cgroups v2** — per-container PID and memory limits. two containers won't step on each other
-- **overlayfs** — layered filesystem, base image stays clean, writes go to upper layer
-- **networking** — veth pairs, container gets its own IP, can talk to host
-- **OCI image pull** — pulls images straight from Docker Hub. auth token, manifest resolution (handles multi-arch), layer download, tar.gz extraction. no docker needed
-- **container lifecycle** — run, ps, stop, rm, logs. state tracked in JSON files
+- **namespaces**: PID, UTS, Mount, Network. container is fully isolated, sees only its own processes, has its own hostname, filesystem, network stack
+- **cgroups v2:**  per-container PID and memory limits. two containers won't step on each other
+- **overlayfs:** layered filesystem, base image stays clean, writes go to upper layer
+- **networking:** veth pairs, container gets its own IP, can talk to host
+- **OCI image pull:**  pulls images straight from Docker Hub. auth token, manifest resolution (handles multi-arch), layer download, tar.gz extraction. no docker needed
+- **container lifecycle:**  run, ps, stop, rm, logs. state tracked in JSON files
 ```bash
 sudo ./gobox pull alpine
 sudo ./gobox run -i alpine /bin/sh

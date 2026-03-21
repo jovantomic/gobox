@@ -162,6 +162,34 @@ var cpCmd = &cobra.Command{
 	},
 }
 
+var checkpointCmd = &cobra.Command{
+	Use:   "checkpoint [id]",
+	Short: "Checkpoint a running container",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		id := args[0]
+		err := checkpointContainer(id)
+		if err != nil {
+			fmt.Printf("Error checkpointing container: %v\n", err)
+			return
+		}
+	},
+}
+
+var restoreCmd = &cobra.Command{
+	Use:   "restore [id]",
+	Short: "Restore a checkpointed container",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		id := args[0]
+		err := restoreContainer(id)
+		if err != nil {
+			fmt.Printf("Error restoring container: %v\n", err)
+			return
+		}
+	},
+}
+
 func init() {
 	runCmd.Flags().StringP("memory", "m", "100m", "Memory limit")
 	runCmd.Flags().StringP("pids", "p", "20", "Max number of processes")
@@ -176,6 +204,9 @@ func init() {
 	rootCmd.AddCommand(pullCmd)
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(cpCmd)
+	rootCmd.AddCommand(checkpointCmd)
+	rootCmd.AddCommand(restoreCmd)
+
 }
 
 func executeCLI() {
