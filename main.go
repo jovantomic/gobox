@@ -74,14 +74,15 @@ func child(args []string) {
 	setupContainerNet()
 
 	must(syscall.Sethostname([]byte(hostname)))
-	//fmt.Println("DEBUG: imgPath =", imgPath)
 	merged := setupOverlay(id, imgPath)
-	//fmt.Println("DEBUG: merged =", merged)
 
-	//fmt.Println("DEBUG: merged contents:", len(entries), "entries")
-
-	must(syscall.Chroot(merged))
+	putOld := filepath.Join(merged, ".pivot_old")
+	os.MkdirAll(putOld, 0755)
+	must(syscall.PivotRoot(merged, putOld))
 	must(syscall.Chdir("/"))
+	must(syscall.Unmount("/.pivot_old", syscall.MNT_DETACH))
+	os.Remove("/.pivot_old")
+
 	os.WriteFile("/etc/resolv.conf", []byte("nameserver 8.8.8.8\n"), 0644)
 	must(syscall.Mount("proc", "proc", "proc", 0, ""))
 
@@ -90,5 +91,4 @@ func child(args []string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
-	//fmt.Println("DEBUG: cmd.Run error:", err)
 }
