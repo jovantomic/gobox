@@ -81,3 +81,11 @@ learned how tar.gz extraction works in go
 i think the first version is completed, still have to do things like exec, checkpoint and migrate and Goboxfile.
 
 exec command added, now we can run `sudo ./gobox exec <id> command`, in some other bash for a running container
+
+## day 6 - mar 21
+
+port forwarding. `gobox port <id> 8080:80` — iptables DNAT rule that redirects host port to container IP.
+
+testing with nginx was a whole saga. dns didnt work (no resolv.conf), internet didnt work (ip_forward off + wrong subnet in MASQUERADE), and nginx returned 404 on everything because alpine default config literally says `return 404`. three problems stacked.
+
+added `gobox cp` to copy files from host into container. also added IP to container state struct.

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -128,6 +129,39 @@ var portForwardCmd = &cobra.Command{
 	},
 }
 
+var cpCmd = &cobra.Command{
+	Use:   "cp [id] [src] [dest]",
+	Short: "Copy file from host to container",
+	Args:  cobra.ExactArgs(3),
+	Run: func(cmd *cobra.Command, args []string) {
+		id := args[0]
+		src := args[1]
+		dest := args[2]
+
+		state := getContainerById(id)
+		if state == nil {
+			fmt.Printf("Container %s not found\n", id)
+			return
+		}
+
+		merged := filepath.Join("/var/lib/gobox/overlay", id, "merged")
+		fullDest := filepath.Join(merged, dest)
+
+		os.MkdirAll(filepath.Dir(fullDest), 0755)
+		data, err := os.ReadFile(src)
+		if err != nil {
+			fmt.Printf("Error reading %s: %v\n", src, err)
+			return
+		}
+		err = os.WriteFile(fullDest, data, 0644)
+		if err != nil {
+			fmt.Printf("Error writing: %v\n", err)
+			return
+		}
+		fmt.Printf("Copied %s -> %s:%s\n", src, id, dest)
+	},
+}
+
 func init() {
 	runCmd.Flags().StringP("memory", "m", "100m", "Memory limit")
 	runCmd.Flags().StringP("pids", "p", "20", "Max number of processes")
@@ -141,6 +175,7 @@ func init() {
 	rootCmd.AddCommand(logCmd)
 	rootCmd.AddCommand(pullCmd)
 	rootCmd.AddCommand(execCmd)
+	rootCmd.AddCommand(cpCmd)
 }
 
 func executeCLI() {
