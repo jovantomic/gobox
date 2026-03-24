@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -129,15 +128,6 @@ func inferLowerRootfs(id string, state *ContainerState) string {
 		imgPath := filepath.Join(imagesDir, state.Image, "rootfs")
 		if _, err := os.Stat(imgPath); err == nil {
 			return imgPath
-		}
-	}
-
-	logFile := filepath.Join(stateDir, id, "log.txt")
-	if logData, err := os.ReadFile(logFile); err == nil {
-		re := regexp.MustCompile(`/var/lib/gobox/images/[^\s\]]+/rootfs|/home/ubuntu/gobox/root`)
-		matches := re.FindAllString(string(logData), -1)
-		if len(matches) > 0 {
-			return matches[len(matches)-1]
 		}
 	}
 
