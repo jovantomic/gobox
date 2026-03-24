@@ -85,7 +85,7 @@ func child(args []string) {
 	merged := setupOverlay(id, imgPath)
 
 	putOld := filepath.Join(merged, ".pivot_old")
-	os.MkdirAll(putOld, 0755)
+	must(os.MkdirAll(putOld, 0755))
 	must(syscall.PivotRoot(merged, putOld))
 	must(syscall.Chdir("/"))
 	must(syscall.Unmount("/.pivot_old", syscall.MNT_DETACH))
