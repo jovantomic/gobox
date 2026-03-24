@@ -14,6 +14,8 @@ container runtime from scratch in Go. why? sounded fun and as a extra project in
 sudo ./gobox pull alpine
 sudo ./gobox run -i alpine /bin/sh
 sudo ./gobox ps
+sudo ./gobox checkpoint <id>
+sudo ./gobox restore <id>
 sudo ./gobox stop <id>
 sudo ./gobox logs <id>
 ```
